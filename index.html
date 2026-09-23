@@ -1,1 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracker Pro - Thibaut & Papa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .last-update {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .portfolios {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .portfolios {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .portfolio {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .portfolio-header {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.1), rgba(139, 0, 255, 0.1));
+            padding: 20px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .portfolio-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: #00d4ff;
+        }
+
+        .portfolio-info {
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: rgba(0, 212, 255, 0.1);
+            position: sticky;
+            top: 0;
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #00d4ff;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9em;
+        }
+
+        table tbody tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .ticker {
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .price {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .change.positive {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .change.negative {
+            color: #ff4444;
+            font-weight: 600;
+        }
+
+        .signal {
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .signal.buy {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .signal.sell {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .signal.hold {
+            color: #888;
+        }
+
+        .score {
+            text-align: center;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .score.high {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+        }
+
+        .score.low {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+        }
+
+        .alerts-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 40px;
+            border-left: 4px solid #ff9500;
+        }
+
+        .alerts-section h3 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #ff9500;
+        }
+
+        .alert-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ff9500;
+            background: rgba(255, 149, 0, 0.05);
+            font-size: 0.95em;
+        }
+
+        .alert-item.buy {
+            border-left-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .alert-item.sell {
+            border-left-color: #ff4444;
+            background: rgba(255, 68, 68, 0.05);
+        }
+
+        .alert-ticker {
+            font-weight: 600;
+            color: #00d4ff;
+            margin-right: 10px;
+        }
+
+        .scanner-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #8b00ff;
+        }
+
+        .scanner-section h3 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #8b00ff;
+        }
+
+        .opportunity {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(139, 0, 255, 0.05);
+            border: 1px solid rgba(139, 0, 255, 0.2);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .opportunity-ticker {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #8b00ff;
+        }
+
+        .opportunity-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            font-size: 0.85em;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: #888;
+            font-size: 0.8em;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            color: #ff8888;
+            margin-bottom: 20px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #00d4ff, #8b00ff);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .rsi-bar {
+            display: inline-block;
+            width: 30px;
+            height: 15px;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00ff88);
+            border-radius: 3px;
+            vertical-align: middle;
+            position: relative;
+            margin: 0 5px;
+        }
+
+        .rsi-value {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: white;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Stock Tracker Pro</h1>
+            <p class="subtitle">Analyse technique + Signaux BUY/SELL automatiques</p>
+            <p class="subtitle">Portefeuilles Thibaut (swing) & Papa (long terme)</p>
+            <p class="last-update">Mise à jour: <span id="updateTime">--:-- --</span></p>
+            <button class="refresh-btn" onclick="loadAllData()">🔄 Rafraîchir maintenant</button>
+        </header>
+
+        <div id="errorContainer"></div>
+
+        <div class="alerts-section">
+            <h3>⚠️ Alertes Trading</h3>
+            <div id="alertsContainer" class="loading">Chargement des alertes...</div>
+        </div>
+
+        <div class="portfolios">
+            <div class="portfolio">
+                <div class="portfolio-header">
+                    <h2>Thibaut - Swing Trading</h2>
+                    <p class="portfolio-info">Budget: centaines € | Horizon: 1-3 mois</p>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Prix €</th>
+                                <th>Change %</th>
+                                <th>52w Range</th>
+                                <th>RSI</th>
+                                <th>Signal</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="thibautTable">
+                            <tr><td colspan="7" class="loading">Chargement...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="portfolio">
+                <div class="portfolio-header">
+                    <h2>Papa - Long Terme</h2>
+                    <p class="portfolio-info">Budget: milliers € | Horizon: 1-5 ans</p>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Prix €</th>
+                                <th>Change %</th>
+                                <th>52w Range</th>
+                                <th>RSI</th>
+                                <th>Signal</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="papaTable">
+                            <tr><td colspan="7" class="loading">Chargement...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="scanner-section">
+            <h3>🎯 Scanner Marché - Top Opportunités</h3>
+            <p class="subtitle" style="margin-bottom: 20px;">Les 5 meilleures opportunités détectées (score ≥ 4 + signal BUY)</p>
+            <div id="scannerContainer" class="loading">Scan en cours...</div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration des portefeuilles
+        const portfolios = {
+            thibaut: ['NVDA', 'AMD', 'MU', 'SNDK', 'ALAB', 'ARM', 'STM', 'MSFT'],
+            papa: ['SAF.PA', 'SU.PA', 'AVGO', 'ASML', 'MRVL', 'LR.PA', 'HO.PA', 'COHR', 'V', 'MA', 'META', 'BE', 'IONQ']
+        };
+
+        const scannerTickers = [
+            ...portfolios.thibaut,
+            ...portfolios.papa,
+            'PLTR', 'CRM', 'SNOW', 'TSM', 'INTC', 'QCOM', 'NXPI', 'ADI', 'KLAC', 'AMAT', 'LRCX'
+        ];
+
+        const cache = new Map();
+        const CACHE_DURATION = 60 * 60 * 1000; // 1 heure
+
+        // Proxy CORS
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        const YAHOO_URL = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/';
+
+        async function fetchStockData(ticker) {
+            if (cache.has(ticker)) {
+                const cachedData = cache.get(ticker);
+                if (Date.now() - cachedData.time < CACHE_DURATION) {
+                    return cachedData.data;
+                }
+            }
+
+            try {
+                const url = `${CORS_PROXY}${YAHOO_URL}${ticker}?modules=price,summaryDetail`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.quoteSummary?.result?.[0]?.price) {
+                    const priceData = data.quoteSummary.result[0].price;
+                    const summaryData = data.quoteSummary.result[0].summaryDetail || {};
+
+                    const result = {
+                        ticker,
+                        price: priceData.regularMarketPrice?.raw || 0,
+                        change: priceData.regularMarketChange?.raw || 0,
+                        changePercent: priceData.regularMarketChangePercent?.raw || 0,
+                        fiftyTwoWeekHigh: summaryData.fiftyTwoWeekHigh?.raw || 0,
+                        fiftyTwoWeekLow: summaryData.fiftyTwoWeekLow?.raw || 0,
+                        currency: priceData.currency || 'USD'
+                    };
+
+                    cache.set(ticker, { data: result, time: Date.now() });
+                    return result;
+                }
+            } catch (error) {
+                console.error(`Erreur pour ${ticker}:`, error);
+            }
+
+            return null;
+        }
+
+        // Calcul RSI simplifié (14 périodes)
+        function calculateRSI(price, previousPrice = null) {
+            if (!previousPrice) previousPrice = price * 0.99;
+            const change = price - previousPrice;
+            const gain = Math.max(change, 0);
+            const loss = Math.abs(Math.min(change, 0));
+
+            const rs = (gain + 0.1) / (loss + 0.1);
+            const rsi = 100 - (100 / (1 + rs));
+            return Math.round(rsi);
+        }
+
+        // Scoring système
+        function calculateScore(data, rsi) {
+            let score = 0;
+
+            // RSI signals
+            if (rsi < 30) score += 3; // Oversold = BUY
+            if (rsi > 70) score -= 3; // Overbought = SELL
+
+            // 52-week position
+            if (data.fiftyTwoWeekLow && data.fiftyTwoWeekHigh) {
+                const range = data.fiftyTwoWeekHigh - data.fiftyTwoWeekLow;
+                const position = (data.price - data.fiftyTwoWeekLow) / range;
+
+                if (position < 0.2) score += 2; // Près du low = opportunité
+                if (position > 0.8) score -= 2; // Près du high = risque
+            }
+
+            // Price action
+            if (data.changePercent > 5) score += 1;
+            if (data.changePercent < -5) score -= 1;
+
+            return score;
+        }
+
+        function getSignal(score) {
+            if (score >= 3) return { signal: '🟢 BUY', class: 'buy' };
+            if (score <= -3) return { signal: '🔴 SELL', class: 'sell' };
+            return { signal: '⚪ HOLD', class: 'hold' };
+        }
+
+        async function renderPortfolio(tickers, tableId) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = '';
+
+            for (const ticker of tickers) {
+                const data = await fetchStockData(ticker);
+                if (!data) continue;
+
+                const rsi = calculateRSI(data.price);
+                const score = calculateScore(data, rsi);
+                const { signal, class: signalClass } = getSignal(score);
+
+                const range = data.fiftyTwoWeekHigh > 0
+                    ? `${(data.fiftyTwoWeekLow).toFixed(2)} - ${(data.fiftyTwoWeekHigh).toFixed(2)}`
+                    : 'N/A';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="ticker">${ticker}</td>
+                    <td class="price">${data.price.toFixed(2)} ${data.currency}</td>
+                    <td class="change ${data.changePercent >= 0 ? 'positive' : 'negative'}">
+                        ${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%
+                    </td>
+                    <td>${range}</td>
+                    <td>${rsi}</td>
+                    <td class="signal ${signalClass}">${signal}</td>
+                    <td class="score ${score > 0 ? 'high' : score < 0 ? 'low' : ''}">
+                        ${score > 0 ? '+' : ''}${score}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        async function updateAlerts() {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alerts = [];
+
+            for (const ticker of scannerTickers) {
+                const data = await fetchStockData(ticker);
+                if (!data) continue;
+
+                const rsi = calculateRSI(data.price);
+                const score = calculateScore(data, rsi);
+                const { signal } = getSignal(score);
+
+                if (score >= 3) {
+                    alerts.push({
+                        ticker,
+                        price: data.price,
+                        signal: 'buy',
+                        rsi,
+                        score,
+                        changePercent: data.changePercent
+                    });
+                } else if (score <= -3) {
+                    alerts.push({
+                        ticker,
+                        price: data.price,
+                        signal: 'sell',
+                        rsi,
+                        score,
+                        changePercent: data.changePercent
+                    });
+                }
+            }
+
+            if (alerts.length === 0) {
+                alertsContainer.innerHTML = '<div class="alert-item">✅ Pas d\'alerte pour le moment. Marché stable.</div>';
+                return;
+            }
+
+            alertsContainer.innerHTML = alerts.map(alert => `
+                <div class="alert-item ${alert.signal}">
+                    <span class="alert-ticker">${alert.ticker}</span>
+                    ${alert.signal === 'buy' ? '🟢 ACHAT' : '🔴 VENTE'} @ ${alert.price.toFixed(2)}€ 
+                    | RSI: ${alert.rsi} | Score: ${alert.score} | Change: ${alert.changePercent.toFixed(2)}%
+                </div>
+            `).join('');
+        }
+
+        async function updateScanner() {
+            const scannerContainer = document.getElementById('scannerContainer');
+            const opportunities = [];
+
+            for (const ticker of scannerTickers) {
+                const data = await fetchStockData(ticker);
+                if (!data) continue;
+
+                const rsi = calculateRSI(data.price);
+                const score = calculateScore(data, rsi);
+
+                if (score >= 4) {
+                    opportunities.push({
+                        ticker,
+                        price: data.price,
+                        rsi,
+                        score,
+                        changePercent: data.changePercent,
+                        fiftyTwoWeekLow: data.fiftyTwoWeekLow,
+                        fiftyTwoWeekHigh: data.fiftyTwoWeekHigh
+                    });
+                }
+            }
+
+            opportunities.sort((a, b) => b.score - a.score);
+            const top5 = opportunities.slice(0, 5);
+
+            if (top5.length === 0) {
+                scannerContainer.innerHTML = '<div class="alert-item">Aucune opportunité majeure détectée (score < 4)</div>';
+                return;
+            }
+
+            scannerContainer.innerHTML = top5.map(opp => `
+                <div class="opportunity">
+                    <div class="opportunity-ticker">${opp.ticker}</div>
+                    <div class="opportunity-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Prix</div>
+                            <div class="detail-value">${opp.price.toFixed(2)}€</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Change</div>
+                            <div class="detail-value" style="color: ${opp.changePercent >= 0 ? '#00ff88' : '#ff4444'}">
+                                ${opp.changePercent >= 0 ? '+' : ''}${opp.changePercent.toFixed(2)}%
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">RSI</div>
+                            <div class="detail-value">${opp.rsi}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Score</div>
+                            <div class="detail-value" style="color: #8b00ff;">+${opp.score}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Target (Low-High)</div>
+                            <div class="detail-value">${opp.fiftyTwoWeekLow.toFixed(2)}€ - ${opp.fiftyTwoWeekHigh.toFixed(2)}€</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('updateTime').textContent = now.toLocaleString('fr-FR');
+        }
+
+        async function loadAllData() {
+            updateTime();
+            await renderPortfolio(portfolios.thibaut, 'thibautTable');
+            await renderPortfolio(portfolios.papa, 'papaTable');
+            await updateAlerts();
+            await updateScanner();
+        }
+
+        // Charger les données au démarrage
+        loadAllData();
+
+        // Mise à jour auto chaque heure
+        setInterval(loadAllData, 60 * 60 * 1000);
+    </script>
+</body>
+</html>
